@@ -1,0 +1,10 @@
+.env
+.DS_Store
+.idea/
+logs/*
+!/logs/.gitkeep
+dump/*
+!/dump/.gitkeep
+mysql/mariadb
+www/*
+!/www/fluxbb/index.php

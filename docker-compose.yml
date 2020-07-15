@@ -1,0 +1,54 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - ${SERVER_PORT}:80
+    volumes:
+      - ./docker/nginx:/etc/nginx/conf.d:ro
+      - ./www:/var/www:ro
+      - ./logs:/var/log/nginx
+    links:
+      - php
+
+  php:
+    build:
+      context: ./docker/php
+      args:
+        - USER_ID
+        - GROUP_ID
+    links:
+      - mysql
+    volumes:
+      - ./www:/var/www:rw
+
+  mysql:
+    image: mariadb
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/custom.cnf:/etc/mysql/conf.d/custom.cnf
+      - ./mysql/mariadb:/var/lib/mysql:cached
+      - ./mysql/init:/docker-entrypoint-initdb.d
+      - ./dump:/mnt
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    links:
+      - mysql:mysql
+    ports:
+      - ${PMA_PORT}:80
+    environment:
+      - PMA_HOST=${DB_HOST}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
+
+  # maildev:
+  #   image: djfarrelly/maildev
+  #   ports:
+  #     - ${MAILDEV_PORT}:80
